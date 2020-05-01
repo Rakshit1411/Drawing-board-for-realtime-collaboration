@@ -1,8 +1,9 @@
 var socket;
-var weight;
-let input, greeting;
+var weight,eraser,pencil,colorChooser;
+let greeting;
 let button;
 var currentWidth = 36;
+var currentColor;
 var colors = ['green','red','orange','purple','blue','cyan','pink','maroon','brown'];
 function setup() {
   createCanvas(window.innerWidth, window.innerHeight);
@@ -10,14 +11,16 @@ function setup() {
   socket = io.connect('http://localhost:8080/');
   socket.on('mouse', newDrawing);
 
+  colorChooser = select("#colorChooser");
+  currentColor = colorChooser.value();
   weight = select("#width");
-  weight.mousePressed(() => {currentWidth = weight.value();})
-  input = createInput();
-  input.position(20, 65);
-
-
-  greeting = createElement('h2', 'Enter your favourite color');
-  greeting.position(20, 5);
+  eraser = select('#eraser');
+  pencil = select('#draw');
+  weight.changed(() => {currentWidth = weight.value();})
+  eraser.mousePressed(() => {currentColor=51});
+  pencil.mousePressed(()=>{currentColor=colorChooser.value()});
+  
+  colorChooser.changed(()=>{currentColor=colorChooser.value()});
 
   textAlign(CENTER);
   textSize(50);
@@ -27,26 +30,13 @@ function setup() {
 
 function erase(){
   console.log('inside erase method');
-  // console.log(mouseX+','+mouseY);
-  // console.log('Weight: '+weight);
-  // var data = {
-  //   x:mouseX,
-  //   y:mouseY,
-  //   connectionNumber:0
-  // }
-
-  // socket.emit('mouse', data);
-
-  // noStroke();
-  // fill('black');
-  // ellipse(mouseX,mouseY,25,25);
 }
 
 function newDrawing(data){
   noStroke();
   // log.console("cONNECTION nUMBER"+io.sockets.socket.client.conn.server.clientsCount);
-  fill(colors[5]);
-  ellipse(data.x,data.y,currentWidth,currentWidth);
+  fill(data.color);
+  ellipse(data.x,data.y,data.size,data.size);
   }
 
 function mouseDragged(){
@@ -55,16 +45,15 @@ function mouseDragged(){
   var data = {
     x:mouseX,
     y:mouseY,
-    connectionNumber:0
+    color:currentColor,
+    size:currentWidth
   }
 
   socket.emit('mouse', data);
 
   noStroke();
-  if(input.value() == 'eraser')
-    fill(51);
-  else
-    fill(input.value());
+
+  fill(currentColor);
   ellipse(mouseX,mouseY,currentWidth,currentWidth);
 }
 
